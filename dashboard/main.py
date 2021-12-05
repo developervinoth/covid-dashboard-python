@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as stl
-
-
+import plotly.express as px
 #dataset from github
 global_data = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
 
@@ -17,8 +16,15 @@ df.drop(columns=['Province/State','Lat','Long'], inplace=True)
 #Streamlit selectbox for country selection
 country_select = stl.selectbox('Select Country', list(df['Country/Region'].unique()))
 
-#table of selected country
-stl.table(df[df['Country/Region'] == country_select])
 
+#table of selected country
+#stl.table(df[df['Country/Region'] == country_select])
+
+
+country_df = df[df['Country/Region'] == country_select]
+
+fig = px.line(data_frame=country_df,x = 'Date', y='Cases')
+
+stl.plotly_chart(fig)
 print(df)
 
