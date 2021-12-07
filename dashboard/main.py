@@ -3,37 +3,83 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import streamlit as stl
 import plotly.express as px
-#dataset from github
+# dataset for postive cases from github
 global_data = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
 
-#creating dataset from github source file
-raw_df = pd.read_csv(global_data)
+# dataset for deaths from github
+death_data = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
 
-#Transposing dataframe based Column(Date) ----> Row(date)
-df = raw_df.melt(id_vars=['Country/Region', 'Province/State', 'Lat', 'Long'] ,var_name= 'Date', value_name='Cases')
-df['Date'] = pd.to_datetime(df['Date'])
-#removing unwanted rows
-df.drop(columns=['Province/State','Lat','Long'], inplace=True)
+# creating dataframe from github source file
+positive_cases = pd.read_csv(global_data)
+deaths = pd.read_csv(death_data)
 
-#Streamlit selectbox for country selection
-country_select = stl.sidebar.selectbox('Select Country', list(df['Country/Region'].unique()))
+# Transposing dataframe based Column(Date) ----> Row(date)
+df_cases = positive_cases.melt(id_vars=['Country/Region', 'Province/State',
+                                        'Lat', 'Long'], var_name='Date', value_name='Cases')
+
+df_deaths = deaths.melt(id_vars=['Country/Region', 'Province/State',
+                                 'Lat', 'Long'], var_name='Date', value_name='Cases')
+
+# Date columns datatime changed to DateTime
+df_cases['Date'] = pd.to_datetime(df_cases['Date'])
+df_deaths['Date'] = pd.to_datetime(df_cases['Date'])
+
+# removing unwanted rows
+df_cases.drop(columns=['Province/State', 'Lat', 'Long'], inplace=True)
+df_deaths.drop(columns=['Province/State', 'Lat', 'Long'], inplace=True)
+
+#Tabs
+tabs = ['Cases', 'Deaths', 'Vaccinations', 'Tests']
+
+# Defining Columns 
+col1, col2 = stl.columns(2)
+
+# Selectbox for Tab Selection
+tab_select = stl.sidebar.radio('Select Tab', tabs)
 
 
-#table of selected country
-#stl.table(df[df['Country/Region'] == country_select])
+# Streamlit selectbox for country selection
+country_select = stl.sidebar.selectbox(
+    'Select Country', list(df_cases['Country/Region'].unique()))
 
 
-country_df = df[df['Country/Region'] == country_select]
+              
+if tab_select == tabs[0]:
+    # Confirmed Case by Country Selection
+    col1.title('Total Cases')
+    col1.subheader(str((df_cases[df_cases['Country/Region'] ==
+              country_select].tail(1).Cases.values[0])/1000) + 'K')
+              
+    # Currently Active Cases
+    col2.title('Active Cases')
+    col2.subheader((df_cases[df_cases['Country/Region'] == country_select][-2:-1].Cases.values[0]) -
+              (df_cases[df_cases['Country/Region'] == country_select][-3:-2].Cases.values[0]))
 
-fig = px.line(data_frame=country_df,x = 'Date', y='Cases')
 
-fig.update_xaxes(showgrid=False, tickformat = '%b %Y')
-fig.update_yaxes(showgrid=False )
-fig.update_layout(hovermode="x unified",hoverlabel=dict(
+    country_df_cases = df_cases[df_cases['Country/Region'] == country_select]
+
+    fig = px.line(data_frame=country_df_cases, x='Date', y='Cases')
+
+    fig.update_xaxes(showgrid=False, tickformat='%b %Y')
+    fig.update_yaxes(showgrid=False)
+    fig.update_layout(hovermode="x unified", hoverlabel=dict(
         bgcolor="white",
         font_size=9,
-        font_family="Arial",
+        font_family="Arial"
     ))
-stl.plotly_chart(fig)
-print(df)
+    stl.plotly_chart(fig)
+    print(df_cases)
 
+
+# Death Page
+if tab_select == tabs[1]:
+        #Total Deaths
+    stl.title('Total Deaths')
+    deathInNumber = df_deaths[df_deaths['Country/Region'] == country_select].tail(1).Cases.values[0]
+    
+    if deathInNumber > 100000:
+        stl.subheader(str(round(((df_deaths[df_deaths['Country/Region'] ==
+              country_select].tail(1).Cases.values[0])/100000),2)) + 'L')
+    if deathInNumber < 100000:
+            stl.subheader(str((((df_deaths[df_deaths['Country/Region'] ==
+              country_select].tail(1).Cases.values[0])))))
