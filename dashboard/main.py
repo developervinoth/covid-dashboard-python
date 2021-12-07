@@ -36,14 +36,23 @@ col1, col2 = stl.columns(2)
 
 # Selectbox for Tab Selection
 tab_select = stl.sidebar.radio('Select Tab', tabs)
-
-
+country_list =  list(df_cases['Country/Region'].unique())
+print('Starting Length: ', len(country_list))
+country_list.remove('India')
+print('Removing India: ', len(country_list))
+country_list.insert(0, 'India')
+print('Adding India', len(country_list))
 # Streamlit selectbox for country selection
 country_select = stl.sidebar.selectbox(
-    'Select Country', list(df_cases['Country/Region'].unique()))
+    'Select Country',country_list)
+temp_value = 0
+def dailyCal(currentRow):
+    global temp_value
+    todayDeath = currentRow-temp_value
+    temp_value = currentRow
+    return int(todayDeath)
 
-
-              
+#Cases Page
 if tab_select == tabs[0]:
     # Confirmed Case by Country Selection
     col1.title('Total Cases')
@@ -54,20 +63,20 @@ if tab_select == tabs[0]:
     col2.title('Active Cases')
     col2.subheader((df_cases[df_cases['Country/Region'] == country_select][-2:-1].Cases.values[0]) -
               (df_cases[df_cases['Country/Region'] == country_select][-3:-2].Cases.values[0]))
-
-
+    df_cases['Daily_Cases'] = df_cases[df_cases['Country/Region'] == country_select]['Cases'].apply(lambda x: dailyCal(x))
+    temp_value = 0
+    
     country_df_cases = df_cases[df_cases['Country/Region'] == country_select]
-
-    fig = px.line(data_frame=country_df_cases, x='Date', y='Cases')
-
+    fig = px.line(data_frame= country_df_cases, x= 'Date', y='Daily_Cases')
     fig.update_xaxes(showgrid=False, tickformat='%b %Y')
     fig.update_yaxes(showgrid=False)
     fig.update_layout(hovermode="x unified", hoverlabel=dict(
-        bgcolor="white",
-        font_size=9,
-        font_family="Arial"
-    ))
+         bgcolor="white",
+         font_size=9,
+         font_family="Arial"
+     ))
     stl.plotly_chart(fig)
+    
     print(df_cases)
 
 
@@ -83,3 +92,29 @@ if tab_select == tabs[1]:
     if deathInNumber < 100000:
             stl.subheader(str((((df_deaths[df_deaths['Country/Region'] ==
               country_select].tail(1).Cases.values[0])))))
+
+
+    
+    df_deaths_duplicate = df_deaths.copy()
+
+    
+    country_df_deaths = df_deaths_duplicate[df_deaths_duplicate['Country/Region'] == country_select]
+
+    country_df_deaths['Daily_Deaths'] = country_df_deaths[country_df_deaths['Country/Region'] == country_select]['Cases'].apply(lambda x: dailyCal(x))
+    temp_value = 0
+
+
+    fig = px.line(data_frame=country_df_deaths, x='Date', y='Daily_Deaths')
+
+    fig.update_xaxes(showgrid=False, tickformat='%b %Y')
+    fig.update_yaxes(showgrid=False)
+    fig.update_layout(hovermode="x unified", hoverlabel=dict(
+        bgcolor="white",
+        font_size=9,
+        font_family="Arial"
+    ))
+    
+    
+    
+    stl.plotly_chart(fig)
+    
