@@ -60,6 +60,7 @@ def dailyCal(currentRow):
 
 # Cases Page
 if tab_select == tabs[0]:
+
     # Confirmed Case by Country Selection
     col1.title('Total Cases')
     col1.subheader(str((df_cases[df_cases['Country/Region'] ==
@@ -74,6 +75,7 @@ if tab_select == tabs[0]:
     temp_value = 0
 
     country_df_cases = df_cases[df_cases['Country/Region'] == country_select]
+    stl.sidebar.text('Updated on: ' + str(country_df_cases['Date'].tail(1).values[0])[0:10])
     fig = px.line(data_frame=country_df_cases, x='Date', y='Daily_Cases')
     fig.update_xaxes(showgrid=False, tickformat='%b %Y')
     fig.update_yaxes(showgrid=False)
@@ -109,7 +111,7 @@ if tab_select == tabs[1]:
     country_df_deaths['Daily_Deaths'] = country_df_deaths[country_df_deaths['Country/Region']
                                                           == country_select]['Cases'].apply(lambda x: dailyCal(x))
     temp_value = 0
-
+    stl.sidebar.text('Updated on: ' + str(country_df_deaths['Date'].tail(1).values[0])[0:10])
     fig = px.line(data_frame=country_df_deaths, x='Date', y='Daily_Deaths')
 
     fig.update_xaxes(showgrid=False, tickformat='%b %Y')
