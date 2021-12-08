@@ -122,3 +122,6 @@ if tab_select == tabs[1]:
         font_family="Arial"
     ))
     stl.plotly_chart(fig)
+
+#Github Repo Added
+stl.sidebar.write("Check out the project repo: [link](https://github.com/developervinoth/covid-dashboard-python/blob/master/dashboard/main.py)")

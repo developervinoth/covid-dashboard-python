@@ -1,3 +1,0 @@
-streamlit==1.2.0
-pandas==1.3.4
-plotly==5.4.0
